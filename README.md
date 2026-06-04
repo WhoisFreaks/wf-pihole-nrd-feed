@@ -27,8 +27,8 @@ This repo wires the [WhoisFreaks NRD feed](https://whoisfreaks.com/products/newl
 
 ```bash
 # 1. Clone
-git clone https://github.com/YOUR-ORG/pihole-nrd-feed.git
-cd pihole-nrd-feed
+git clone https://github.com/WhoisFreaks/wf-pihole-nrd-feed.git
+cd wf-pihole-nrd-feed
 
 # 2. Store your WhoisFreaks API key on the host
 sudo mkdir -p /etc/whoisfreaks
@@ -92,7 +92,3 @@ echo "nameserver 1.1.1.1" | sudo tee /etc/resolv.conf
 ## License
 
 [MIT](LICENSE)
-
-## Full write-up
-
-For the deeper explanation — research, use cases, false-positive tuning — see the [full blog post](LINK_TO_YOUR_BLOG_POST).
