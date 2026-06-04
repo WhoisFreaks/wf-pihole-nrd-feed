@@ -1,0 +1,55 @@
+services:
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "8080:80/tcp"
+    environment:
+      TZ: 'Asia/Karachi'
+      FTLCONF_webserver_api_password: 'testpassword123'
+    volumes:
+      - './etc-pihole:/etc/pihole'
+      - './etc-dnsmasq.d:/etc/dnsmasq.d'
+    restart: unless-stopped
+    depends_on:
+      - feed-server
+
+  feed-server:
+    container_name: nrd-feed-server
+    image: nginx:alpine
+    volumes:
+      - './feed:/usr/share/nginx/html:ro'
+    restart: unless-stopped
+
+  feed-fetcher:
+    container_name: nrd-feed-fetcher
+    image: alpine:latest
+    environment:
+      # === USER-TUNABLE CONFIG ===
+      WINDOW_DAYS: "10"                                # 5 / 10 / 14 / 30 — your call
+      FEED_TYPES: "gtld cctld"                         # any of: gtld, cctld
+      CRON_SCHEDULE: "0 3 * * *"                       # default: 3 AM UTC daily
+
+      # === PI-HOLE INTEGRATION ===
+      AUTO_SUBSCRIBE: "true"                           # auto-add the feed URL to Pi-hole's Lists
+      TRIGGER_GRAVITY: "true"                          # auto-reload gravity after fetch
+      PIHOLE_CONTAINER: "pihole"                       # name of the pihole container
+      FEED_URL: "http://feed-server/nrd.txt"           # what gets registered in Pi-hole
+      FEED_COMMENT: "WhoisFreaks NRD (auto-added)"
+
+      # === INTERNAL PATHS (usually don't change) ===
+      API_KEY_FILE: "/etc/whoisfreaks/apikey"
+      FEED_DIR: "/var/feed"
+      CACHE_DIR: "/var/feed/cache"
+      OUTPUT: "/var/feed/nrd.txt"
+    volumes:
+      - './feed:/var/feed'
+      - '/etc/whoisfreaks/apikey:/etc/whoisfreaks/apikey:ro'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+    entrypoint: ["/bin/sh", "/var/feed/entrypoint.sh"]
+    restart: unless-stopped
+    stop_grace_period: 30s
+    depends_on:
+      - pihole
